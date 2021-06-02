@@ -1,0 +1,29 @@
+version: '3'
+services:
+  redis:
+    image: "redis:alpine"
+    networks:
+     - default
+     - secure-network 
+    environment:
+       VARIABLE_ONE: "Hello World"
+       VARIABLE_TWO:
+
+  counter:
+     build: .
+     ports:
+       - "5000:5000"
+     links:
+       - redis:kv-datastore
+     networks:
+        - secure-network
+     volumes:
+        - .:/code
+        - data-one:/data
+
+networks:
+  secure-network:
+    driver: bridge
+
+volumes:
+  data-one:
