@@ -1,0 +1,12 @@
+-------------------------------------------------------------------------------
+Test set: com.demo.repository.NodeRepositoryIT
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.709 sec <<< FAILURE! - in com.demo.repository.NodeRepositoryIT
+testPersistySingleNode(com.demo.repository.NodeRepositoryIT)  Time elapsed: 1.609 sec  <<< ERROR!
+javax.persistence.PersistenceException: Unable to build entity manager factory
+	at com.demo.repository.NodeRepositoryIT.setup(NodeRepositoryIT.java:16)
+Caused by: org.hibernate.exception.JDBCConnectionException: Error calling Driver#connect
+	at com.demo.repository.NodeRepositoryIT.setup(NodeRepositoryIT.java:16)
+Caused by: org.postgresql.util.PSQLException: FATAL: database "docker-db" does not exist
+	at com.demo.repository.NodeRepositoryIT.setup(NodeRepositoryIT.java:16)
+
