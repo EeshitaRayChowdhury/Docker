@@ -1,0 +1,76 @@
+
+version: "2"
+
+services:
+
+  # Image Containing DPS and the Model Repo
+  dps_integration:
+    container_name: sample_dps_integration
+    image: armdocker.rnd.ericsson.se/proj_oss_releases/enm/dps-prepopulated
+    volumes:
+      - /etc/opt/ericsson/ERICmodeldeployment/data
+      - /etc/opt/ericsson/ERICmodeldeployment/models
+      - /opt/ericsson/ERICdpsupgrade/egt/output
+    hostname: db1-service
+
+  # Image containing PostgreSQL Database Server used by Service Framework
+  postgres:
+    container_name: sample_postgres
+    image: armdocker.rnd.ericsson.se/proj_oss_releases/enm/postgres
+    hostname: postgresql-server
+
+  # Image containing OpenDJ (LDAP Server) and all openidm policies
+  opendj:
+    container_name: sample_opendj
+    image: armdocker.rnd.ericsson.se/proj_oss_releases/enm/access-control
+    volumes:
+          - ./docker/access-control/config:/opt/ericsson/docker/config
+
+  # Apache docker image with mod_cluster enabled
+  apache:
+    container_name: sample_apache
+    build: ./docker/apache-http-enm
+    hostname: apache-host
+    links:
+      - swagger-ui:swagger-ui
+    ports:
+      - "6666:6666"
+      - "80:80"
+    volumes:
+      - ./docker/apache-http-enm/config:/opt/ericsson/docker/config/httpd
+    volumes_from:
+      - swagger-ui
+
+  # Image containing JBoss AS server
+  jboss:
+    container_name: sample_jboss
+    build: ./docker/jboss-image
+    links:
+      - postgres:postgresql-server
+      - dps_integration:db1-service
+      - opendj:ldap-remote
+      - opendj:ldap-local
+      - apache:apache-host
+    volumes_from:
+      - dps_integration
+      - opendj
+    environment:
+      - JAVA_OPTS=-Xms2800m -Xmx2800m -XX:PermSize=256m -XX:MaxPermSize=768m -Ddps_ignore_mediation=true -Ddata.creator.group=tcs-bit
+    ports:
+      - "9999:9999"
+      - "9990:9990"
+      - "8080:8080"
+      - "8787:8787"
+    volumes:
+      - ./docker/jboss-image/config:/opt/ericsson/docker/config
+
+  swagger-ui:
+    container_name: sample_swagger
+    image:  swaggerapi/swagger-ui
+    environment:
+      - API_URL=http://localhost/api/rest-api.yaml
+      - BASE_URL=/apidocs
+    volumes:
+      - ./docker/swagger-ui/api:/var/www/html/api
+    ports:
+      - "8181:8080"
